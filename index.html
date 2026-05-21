@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especialistas que Suman - Clínica Santa Fe</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A3D80;
+            --secondary: #00A6E0;
+            --accent: #E6007E;
+            --success: #2ECC71;
+            --warning: #F1C40F;
+            --dark: #2C3E50;
+            --light: #F8F9FA;
+            --gray: #BDC3C7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #EBF2FA;
+            color: var(--dark);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #06234B);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 24px;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--secondary);
+            background-color: rgba(0, 166, 224, 0.05);
+        }
+
+        .tab-btn i {
+            margin-right: 8px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+
+        .card-title {
+            font-size: 18px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #EEE;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 5px rgba(0,166,224,0.2);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #06234B;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+        }
+
+        .btn-accent:hover {
+            background-color: #B80062;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: #27AE60;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border-left: 5px solid var(--secondary);
+        }
+
+        .stat-box.money {
+            border-left-color: var(--success);
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-top: 5px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #EEE;
+        }
+
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pending { background: #FFEAA7; color: #B53700; }
+        .badge-approved { background: #D5F5E3; color: #1E8449; }
+        .badge-cashed { background: #E5E7E9; color: #5D6D7E; }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 12px;
+            width: auto;
+            display: inline-block;
+        }
+
+        .btn-danger-sm {
+            background-color: #E74C3C;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            border-radius: 4px;
+        }
+
+        .btn-danger-sm:hover {
+            background-color: #C0392B;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--gray);
+            padding: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Santa Fe</h1>
+        <p>Unidad de Especialidades Médicas, Cirugía e Investigación</p>
+        <h2 style="font-size: 18px; margin-top: 10px; font-weight: 400; color: var(--secondary);">SISTEMA DE PUNTOS - Especialistas que Suman</h2>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('medicos-tab')">
+            <i class="fas fa-user-md"></i>Portal Médicos
+        </button>
+        <button class="tab-btn" onclick="switchTab('admin-tab')">
+            <i class="fas fa-lock"></i>Administración RR.HH.
+        </button>
+    </div>
+
+    <div class="container">
+        
+        <div id="medicos-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-user-circle"></i> Seleccione su Perfil</div>
+                <div class="form-group">
+                    <label for="medico-select">Médico Especialista:</label>
+                    <select id="medico-select" onchange="loadMedicoDashboard()">
+                        <option value="">-- Seleccionar Médico --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="medico-dashboard" style="display: none;">
+                <div class="dashboard-grid">
+                    <div class="stat-box">
+                        <div>Puntos Acumulados</div>
+                        <div class="stat-val" id="dash-puntos" style="color: var(--secondary);">0 pts</div>
+                    </div>
+                    <div class="stat-box money">
+                        <div>Descuento en Renta</div>
+                        <div class="stat-val" id="dash-dinero" style="color: var(--success);">$0 MXN</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-plus-circle"></i> Reportar Nueva Actividad</div>
+                    <form id="report-form" onsubmit="reportarActividad(event)">
+                        <div class="form-group">
+                            <label for="actividad-select">Concepto Realizado:</label>
+                            <select id="actividad-select" required>
+                                <option value="credencializacion">Credencialización (2 pts)</option>
+                                <option value="ingreso_hosp">Ingreso a hospitalización (2 pts)</option>
+                                <option value="dia_hosp">Día hospitalizado (1 pt por día)</option>
+                                <option value="cx_mayor">Ingreso a CX mayor (4 pts)</option>
+                                <option value="cx_menor">Ingreso a CX menor (3 pts)</option>
+                                <option value="cx_pequena">Ingreso a CX pequeña (2 pts)</option>
+                                <option value="referencia">Referencia a CX u hospitalización (2 pts)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="evidencia-input">Folio de Paciente / Expediente / Nota:</label>
+                            <input type="text" id="evidencia-input" placeholder="Ej. Folio 4589 o Fecha de trámite" required>
+                        </div>
+                        <button type="submit" class="btn">Enviar a Validación</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-history"></i> Mi Historial de Puntos</div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Concepto</th>
+                                    <th>Puntos</th>
+                                    <th>Equivalencia</th>
+                                    <th>Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="medico-historial">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-tab" class="tab-content">
+            <div id="admin-auth" class="card">
+                <div class="card-title"><i class="fas fa-shield-alt"></i> Acceso Restringido</div>
+                <div class="form-group">
+                    <label for="admin-pass">Contraseña de Administración:</label>
+                    <input type="password" id="admin-pass" placeholder="Introduce la clave de RR.HH.">
+                </div>
+                <button onclick="verificarPassword()" class="btn btn-accent">Ingresar</button>
+            </div>
+
+            <div id="admin-panel" style="display: none;">
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-user-plus"></i> Alta de Médico Especialista</div>
+                    <form id="medico-form" onsubmit="agregarMedico(event)">
+                        <div class="form-group">
+                            <label for="new-medico-name">Nombre Completo del Especialista:</label>
+                            <input type="text" id="new-medico-name" placeholder="Ej. Dr. Armando Pérez (Ginecología)" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Registrar Médico</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-check-double"></i> Solicitudes Pendientes de Validación</div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Médico</th>
+                                    <th>Concepto</th>
+                                    <th>Folio/Evidencia</th>
+                                    <th>Pts</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-pendientes">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-users"></i> Estado General de Consultorios y Rentas</div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Médico Especialista</th>
+                                    <th>Puntos Visibles (Aprobados)</th>
+                                    <th>Descuento de Renta Acumulado</th>
+                                    <th>Acciones de Control</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-medicos-lista">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE PUNTOS OFICIAL (BASADO EN FLYER)
+        const CATALOGO = {
+            credencializacion: { nombre: "Credencialización", pts: 2 },
+            ingreso_hosp: { nombre: "Ingreso a hospitalización", pts: 2 },
+            dia_hosp: { nombre: "Día hospitalizado", pts: 1 },
+            cx_mayor: { nombre: "Ingreso a CX mayor", pts: 4 },
+            cx_menor: { nombre: "Ingreso a CX menor", pts: 3 },
+            cx_pequena: { nombre: "Ingreso a CX pequeña", pts: 2 },
+            referencia: { nombre: "Referencia a CX u hospitalización", pts: 2 }
+        };
+        const VALOR_PUNTO = 50;
+        const PASS_CORRECTO = "SantaFe2026";
+
+        // BASE DE DATOS LOCAL
+        let medicos = JSON.parse(localStorage.getItem('sf_medicos')) || [];
+        let registros = JSON.parse(localStorage.getItem('sf_registros')) || [];
+
+        function guardarDatos() {
+            localStorage.setItem('sf_medicos', JSON.stringify(medicos));
+            localStorage.setItem('sf_registros', JSON.stringify(registros));
+        }
+
+        // CONTROL DE PESTAÑAS
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (tabId === 'medicos-tab') {
+                actualizarSelectMedicos();
+                loadMedicoDashboard();
+            } else {
+                if (document.getElementById('admin-panel').style.display === 'block') {
+                    cargarPanelAdmin();
+                }
+            }
+        }
+
+        // AUTENTICACIÓN
+        function verificarPassword() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === PASS_CORRECTO) {
+                document.getElementById('admin-auth').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                cargarPanelAdmin();
+            } else {
+                alert('Contraseña incorrecta corporativa.');
+            }
+        }
+
+        // OPERACIONES DE ADMINISTRACIÓN
+        function agregarMedico(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-medico-name');
+            const nombre = nameInput.value.trim();
+            
+            if (nombre) {
+                medicos.push({ id: Date.now().toString(), nombre: nombre });
+                guardarDatos();
+                nameInput.value = '';
+                cargarPanelAdmin();
+                alert('Médico registrado con éxito.');
+            }
+        }
+
+        function eliminarMedico(medicoId, nombreMedico) {
+            if (confirm(`¿Estás completamente seguro de eliminar al ${nombreMedico}? Se borrarán también todos sus registros históricos.`)) {
+                // Filtrar las listas para remover al médico y sus movimientos
+                medicos = medicos.filter(m => m.id !== medicoId);
+                registros = registros.filter(r => r.medicoId !== medicoId);
+                
+                guardarDatos();
+                cargarPanelAdmin();
+                
+                // Si casualmente el perfil estaba seleccionado en el dashboard, limpiar la vista
+                const select = document.getElementById('medico-select');
+                if (select.value === medicoId) {
+                    select.value = "";
+                    loadMedicoDashboard();
+                }
+                
+                alert('Médico eliminado del sistema con éxito.');
+            }
+        }
+
+        function cargarPanelAdmin() {
+            // Cargar Pendientes
+            const tbodyPendientes = document.getElementById('admin-pendientes');
+            tbodyPendientes.innerHTML = '';
+            const pendientes = registros.filter(r => r.estatus === 'pendiente');
+
+            if (pendientes.length === 0) {
+                tbodyPendientes.innerHTML = `<tr><td colspan="5" class="empty-state">No hay solicitudes pendientes de validación</td></tr>`;
+            } else {
+                pendientes.forEach(r => {
+                    const med = medicos.find(m => m.id === r.medicoId);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${med ? med.nombre : 'Desconocido'}</b></td>
+                        <td>${CATALOGO[r.concepto].nombre}</td>
+                        <td><code>${r.evidencia}</code></td>
+                        <td><span style="color:var(--secondary); font-weight:bold;">+${r.puntos}</span></td>
+                        <td class="action-btns">
+                            <button onclick="resolverPuntos('${r.id}', 'aprobado')" class="btn btn-success btn-sm"><i class="fas fa-check"></i></button>
+                            <button onclick="resolverPuntos('${r.id}', 'rechazado')" class="btn btn-accent btn-sm"><i class="fas fa-times"></i></button>
+                        </td>
+                    `;
+                    tbodyPendientes.appendChild(tr);
+                });
+            }
+
+            // Cargar Resumen General de Rentas
+            const tbodyResumen = document.getElementById('admin-medicos-lista');
+            tbodyResumen.innerHTML = '';
+
+            if (medicos.length === 0) {
+                tbodyResumen.innerHTML = `<tr><td colspan="4" class="empty-state">No hay médicos registrados aún</td></tr>`;
+            } else {
+                medicos.forEach(m => {
+                    const ptsAprobados = registros
+                        .filter(r => r.medicoId === m.id && r.estatus === 'aprobado')
+                        .reduce((sum, r) => sum + r.puntos, 0);
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${m.nombre}</td>
+                        <td style="font-weight: bold; color: var(--primary);">${ptsAprobados} pts</td>
+                        <td style="font-weight: bold; color: var(--success);">$${ptsAprobados * VALOR_PUNTO} MXN</td>
+                        <td class="action-btns">
+                            <button onclick="canjearRenta('${m.id}', ${ptsAprobados})" class="btn btn-sm" style="background-color: var(--dark);" ${ptsAprobados === 0 ? 'disabled style="opacity:0.5;"' : ''}>
+                                <i class="fas fa-receipt"></i> Aplicar Renta
+                            </button>
+                            <button onclick="eliminarMedico('${m.id}', '${m.nombre}')" class="btn-danger-sm btn-sm" title="Eliminar del sistema">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </td>
+                    `;
+                    tbodyResumen.appendChild(tr);
+                });
+            }
+        }
+
+        function resolverPuntos(regId, nuevoEstatus) {
+            registros = registros.map(r => r.id === regId ? { ...r, estatus: nuevoEstatus } : r);
+            if (nuevoEstatus === 'rechazado') {
+                registros = registros.filter(r => r.id !== regId);
+            }
+            guardarDatos();
+            cargarPanelAdmin();
+        }
+
+        function canjearRenta(medicoId, puntos) {
+            if (confirm(`¿Confirmas que deseas aplicar el descuento de $${puntos * VALOR_PUNTO} MXN y restablecer el contador de este médico a cero?`)) {
+                registros = registros.map(r => r.medicoId === medicoId && r.estatus === 'aprobado' ? { ...r, estatus: 'canjeado' } : r);
+                guardarDatos();
+                cargarPanelAdmin();
+                alert('Puntos aplicados al recibo de renta exitosamente.');
+            }
+        }
+
+        // OPERACIONES DEL PORTAL DE MÉDICOS
+        function actualizarSelectMedicos() {
+            const select = document.getElementById('medico-select');
+            const valSeleccionado = select.value;
+            select.innerHTML = '<option value="">-- Seleccionar Médico --</option>';
+            medicos.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.nombre;
+                select.appendChild(opt);
+            });
+            select.value = valSeleccionado;
+        }
+
+        function loadMedicoDashboard() {
+            const medicoId = document.getElementById('medico-select').value;
+            const dash = document.getElementById('medico-dashboard');
+
+            if (!medicoId) {
+                dash.style.display = 'none';
+                return;
+            }
+
+            dash.style.display = 'block';
+
+            const ptsAprobados = registros
+                .filter(r => r.medicoId === medicoId && r.estatus === 'aprobado')
+                .reduce((sum, r) => sum + r.puntos, 0);
+
+            document.getElementById('dash-puntos').textContent = `${ptsAprobados} pts`;
+            document.getElementById('dash-dinero').textContent = `$${ptsAprobados * VALOR_PUNTO} MXN`;
+
+            const tbody = document.getElementById('medico-historial');
+            tbody.innerHTML = '';
+            const misRegs = registros.filter(r => r.medicoId === medicoId);
+
+            if (misRegs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No has reportado actividades este mes</td></tr>`;
+            } else {
+                misRegs.sort((a,b) => b.id - a.id).forEach(r => {
+                    const tr = document.createElement('tr');
+                    let badgeClass = 'badge-pending';
+                    let estatusTexto = 'Pendiente';
+                    
+                    if (r.estatus === 'aprobado') { badgeClass = 'badge-approved'; estatusTexto = 'Aprobado'; }
+                    if (r.estatus === 'canjeado') { badgeClass = 'badge-cashed'; estatusTexto = 'Aplicado en Renta'; }
+
+                    tr.innerHTML = `
+                        <td>${r.fecha}</td>
+                        <td>${CATALOGO[r.concepto].nombre}</td>
+                        <td><b>+${r.puntos}</b></td>
+                        <td>$${r.puntos * VALOR_PUNTO} MXN</td>
+                        <td><span class="badge ${badgeClass}">${estatusTexto}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        function reportarActividad(e) {
+            e.preventDefault();
+            const medicoId = document.getElementById('medico-select').value;
+            const concepto = document.getElementById('actividad-select').value;
+            const evidencia = document.getElementById('evidencia-input').value.trim();
+            
+            const hoy = new Date();
+            const fechaTxt = `${hoy.getDate().toString().padStart(2,'0')}/${(hoy.getMonth()+1).toString().padStart(2,'0')}/${hoy.getFullYear()}`;
+
+            const nuevoRegistro = {
+                id: Date.now().toString(),
+                medicoId: medicoId,
+                concepto: concepto,
+                evidencia: evidencia,
+                puntos: CATALOGO[concepto].pts,
+                fecha: fechaTxt,
+                estatus: 'pendiente'
+            };
+
+            registros.push(nuevoRegistro);
+            guardarDatos();
+            
+            document.getElementById('evidencia-input').value = '';
+            loadMedicoDashboard();
+            alert('Actividad enviada. Se reflejará en tu saldo en cuanto Recursos Humanos valide el folio.');
+        }
+
+        actualizarSelectMedicos();
+    </script>
+</body>
+</html>
