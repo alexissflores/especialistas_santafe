@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Especialistas que Suman - Clínica Santa Fe</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root {
             --primary: #0A3D80;
@@ -414,7 +416,21 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE PUNTOS OFICIAL (BASADO EN FLYER)
+        // CONFIGURACIÓN DE TU PROPIA BASE DE DATOS REAL (CONECTADA)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnptvoX6MaSyopJdjEuLEPNrehoXTFBwQ",
+            authDomain: "especialistas-que-suman.firebaseapp.com",
+            databaseURL: "https://especialistas-que-suman-default-rtdb.firebaseio.com",
+            projectId: "especialistas-que-suman",
+            storageBucket: "especialistas-que-suman.firebasestorage.app",
+            messagingSenderId: "496158829128",
+            appId: "1:496158829128:web:a23f8f1b9b5f9ff05b067d"
+        };
+        
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const CATALOGO = {
             credencializacion: { nombre: "Credencialización", pts: 2 },
             ingreso_hosp: { nombre: "Ingreso a hospitalización", pts: 2 },
@@ -427,16 +443,25 @@
         const VALOR_PUNTO = 50;
         const PASS_CORRECTO = "SantaFe2026";
 
-        // BASE DE DATOS LOCAL
-        let medicos = JSON.parse(localStorage.getItem('sf_medicos')) || [];
-        let registros = JSON.parse(localStorage.getItem('sf_registros')) || [];
+        let medicos = [];
+        let registros = [];
 
-        function guardarDatos() {
-            localStorage.setItem('sf_medicos', JSON.stringify(medicos));
-            localStorage.setItem('sf_registros', JSON.stringify(registros));
-        }
+        // ESCUCHADORES EN TIEMPO REAL (NUBE)
+        db.ref('medicos').on('value', (snapshot) => {
+            const data = snapshot.val();
+            medicos = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            actualizarSelectMedicos();
+            if (document.getElementById('admin-panel').style.display === 'block') cargarPanelAdmin();
+            loadMedicoDashboard();
+        });
 
-        // CONTROL DE PESTAÑAS
+        db.ref('registros').on('value', (snapshot) => {
+            const data = snapshot.val();
+            registros = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            if (document.getElementById('admin-panel').style.display === 'block') cargarPanelAdmin();
+            loadMedicoDashboard();
+        });
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -448,13 +473,10 @@
                 actualizarSelectMedicos();
                 loadMedicoDashboard();
             } else {
-                if (document.getElementById('admin-panel').style.display === 'block') {
-                    cargarPanelAdmin();
-                }
+                if (document.getElementById('admin-panel').style.display === 'block') cargarPanelAdmin();
             }
         }
 
-        // AUTENTICACIÓN
         function verificarPassword() {
             const pass = document.getElementById('admin-pass').value;
             if (pass === PASS_CORRECTO) {
@@ -466,43 +488,29 @@
             }
         }
 
-        // OPERACIONES DE ADMINISTRACIÓN
         function agregarMedico(e) {
             e.preventDefault();
             const nameInput = document.getElementById('new-medico-name');
             const nombre = nameInput.value.trim();
             
             if (nombre) {
-                medicos.push({ id: Date.now().toString(), nombre: nombre });
-                guardarDatos();
+                db.ref('medicos').push({ nombre: nombre });
                 nameInput.value = '';
-                cargarPanelAdmin();
-                alert('Médico registrado con éxito.');
+                alert('Médico registrado con éxito en la nube.');
             }
         }
 
         function eliminarMedico(medicoId, nombreMedico) {
-            if (confirm(`¿Estás completamente seguro de eliminar al ${nombreMedico}? Se borrarán también todos sus registros históricos.`)) {
-                // Filtrar las listas para remover al médico y sus movimientos
-                medicos = medicos.filter(m => m.id !== medicoId);
-                registros = registros.filter(r => r.medicoId !== medicoId);
-                
-                guardarDatos();
-                cargarPanelAdmin();
-                
-                // Si casualmente el perfil estaba seleccionado en el dashboard, limpiar la vista
-                const select = document.getElementById('medico-select');
-                if (select.value === medicoId) {
-                    select.value = "";
-                    loadMedicoDashboard();
-                }
-                
-                alert('Médico eliminado del sistema con éxito.');
+            if (confirm(`¿Estás seguro de eliminar al ${nombreMedico}? Se borrarán sus datos sincronizados.`)) {
+                db.ref('medicos/' + medicoId).remove();
+                registros.forEach(r => {
+                    if (r.medicoId === medicoId) db.ref('registros/' + r.id).remove();
+                });
+                alert('Médico eliminado.');
             }
         }
 
         function cargarPanelAdmin() {
-            // Cargar Pendientes
             const tbodyPendientes = document.getElementById('admin-pendientes');
             tbodyPendientes.innerHTML = '';
             const pendientes = registros.filter(r => r.estatus === 'pendiente');
@@ -527,7 +535,6 @@
                 });
             }
 
-            // Cargar Resumen General de Rentas
             const tbodyResumen = document.getElementById('admin-medicos-lista');
             tbodyResumen.innerHTML = '';
 
@@ -548,7 +555,7 @@
                             <button onclick="canjearRenta('${m.id}', ${ptsAprobados})" class="btn btn-sm" style="background-color: var(--dark);" ${ptsAprobados === 0 ? 'disabled style="opacity:0.5;"' : ''}>
                                 <i class="fas fa-receipt"></i> Aplicar Renta
                             </button>
-                            <button onclick="eliminarMedico('${m.id}', '${m.nombre}')" class="btn-danger-sm btn-sm" title="Eliminar del sistema">
+                            <button onclick="eliminarMedico('${m.id}', '${m.nombre}')" class="btn-danger-sm btn-sm">
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
                         </td>
@@ -559,24 +566,24 @@
         }
 
         function resolverPuntos(regId, nuevoEstatus) {
-            registros = registros.map(r => r.id === regId ? { ...r, estatus: nuevoEstatus } : r);
             if (nuevoEstatus === 'rechazado') {
-                registros = registros.filter(r => r.id !== regId);
+                db.ref('registros/' + regId).remove();
+            } else {
+                db.ref('registros/' + regId).update({ estatus: nuevoEstatus });
             }
-            guardarDatos();
-            cargarPanelAdmin();
         }
 
         function canjearRenta(medicoId, puntos) {
-            if (confirm(`¿Confirmas que deseas aplicar el descuento de $${puntos * VALOR_PUNTO} MXN y restablecer el contador de este médico a cero?`)) {
-                registros = registros.map(r => r.medicoId === medicoId && r.estatus === 'aprobado' ? { ...r, estatus: 'canjeado' } : r);
-                guardarDatos();
-                cargarPanelAdmin();
-                alert('Puntos aplicados al recibo de renta exitosamente.');
+            if (confirm(`¿Confirmas que deseas aplicar el descuento de $${puntos * VALOR_PUNTO} MXN y restablecer el contador?`)) {
+                registros.forEach(r => {
+                    if (r.medicoId === medicoId && r.estatus === 'aprobado') {
+                        db.ref('registros/' + r.id).update({ estatus: 'canjeado' });
+                    }
+                });
+                alert('Puntos aplicados con éxito.');
             }
         }
 
-        // OPERACIONES DEL PORTAL DE MÉDICOS
         function actualizarSelectMedicos() {
             const select = document.getElementById('medico-select');
             const valSeleccionado = select.value;
@@ -645,7 +652,6 @@
             const fechaTxt = `${hoy.getDate().toString().padStart(2,'0')}/${(hoy.getMonth()+1).toString().padStart(2,'0')}/${hoy.getFullYear()}`;
 
             const nuevoRegistro = {
-                id: Date.now().toString(),
                 medicoId: medicoId,
                 concepto: concepto,
                 evidencia: evidencia,
@@ -654,15 +660,10 @@
                 estatus: 'pendiente'
             };
 
-            registros.push(nuevoRegistro);
-            guardarDatos();
-            
+            db.ref('registros').push(nuevoRegistro);
             document.getElementById('evidencia-input').value = '';
-            loadMedicoDashboard();
-            alert('Actividad enviada. Se reflejará en tu saldo en cuanto Recursos Humanos valide el folio.');
+            alert('Actividad enviada a la nube.');
         }
-
-        actualizarSelectMedicos();
     </script>
 </body>
 </html>
