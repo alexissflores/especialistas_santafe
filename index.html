@@ -37,7 +37,6 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            position: relative;
         }
 
         header h1 {
@@ -84,7 +83,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 20px auto;
             padding: 0 15px;
         }
@@ -116,8 +115,18 @@
             padding-bottom: 8px;
         }
 
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
         .form-group {
             margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
         }
 
         label {
@@ -264,6 +273,22 @@
             padding: 30px;
             font-style: italic;
         }
+
+        .filter-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid, .filter-bar {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -285,6 +310,7 @@
 
     <div class="container">
         
+        <!-- PESTAÑA MÉDICOS -->
         <div id="medicos-tab" class="tab-content active">
             <div class="card">
                 <div class="card-title"><i class="fas fa-user-circle"></i> Seleccione su Perfil</div>
@@ -311,22 +337,30 @@
                 <div class="card">
                     <div class="card-title"><i class="fas fa-plus-circle"></i> Reportar Nueva Actividad</div>
                     <form id="report-form" onsubmit="reportarActividad(event)">
-                        <div class="form-group">
-                            <label for="actividad-select">Concepto Realizado:</label>
-                            <select id="actividad-select" required>
-                                <option value="credencializacion">Credencialización (2 pts)</option>
-                                <option value="ingreso_hosp">Ingreso a hospitalización (2 pts)</option>
-                                <option value="dia_hosp">Día hospitalizado (1 pt por día)</option>
-                                <option value="cx_mayor">Ingreso a CX mayor (4 pts)</option>
-                                <option value="cx_menor">Ingreso a CX menor (3 pts)</option>
-                                <option value="cx_pequena">Ingreso a CX pequeña (2 pts)</option>
-                                <option value="referencia">Referencia a CX u hospitalización (2 pts)</option>
-                            </select>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="actividad-select">Concepto Realizado:</label>
+                                <select id="actividad-select" required>
+                                    <option value="">-- Seleccionar Concepto --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="fecha-input">Fecha del Procedimiento:</label>
+                                <input type="date" id="fecha-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="folio-input">Folio de Expediente/Nota:</label>
+                                <input type="text" id="folio-input" placeholder="Ej. FOL-4589" required>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="paciente-input">Nombre del Paciente:</label>
+                                <input type="text" id="paciente-input" placeholder="Nombre completo del paciente" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="evidencia-input">Folio de Paciente / Expediente / Nota:</label>
-                            <input type="text" id="evidencia-input" placeholder="Ej. Folio 4589 o Fecha de trámite" required>
-                        </div>
+
                         <button type="submit" class="btn">Enviar a Validación</button>
                     </form>
                 </div>
@@ -338,20 +372,21 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
+                                    <th>Folio</th>
+                                    <th>Paciente</th>
                                     <th>Concepto</th>
-                                    <th>Puntos</th>
-                                    <th>Equivalencia</th>
+                                    <th>Pts</th>
                                     <th>Estatus</th>
                                 </tr>
                             </thead>
-                            <tbody id="medico-historial">
-                                </tbody>
+                            <tbody id="medico-historial"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- PESTAÑA ADMINISTRACIÓN RR.HH. -->
         <div id="admin-tab" class="tab-content">
             <div id="admin-auth" class="card">
                 <div class="card-title"><i class="fas fa-shield-alt"></i> Acceso Restringido</div>
@@ -363,6 +398,8 @@
             </div>
 
             <div id="admin-panel" style="display: none;">
+                
+                <!-- ALTA DE MÉDICOS -->
                 <div class="card">
                     <div class="card-title"><i class="fas fa-user-plus"></i> Alta de Médico Especialista</div>
                     <form id="medico-form" onsubmit="agregarMedico(event)">
@@ -374,6 +411,39 @@
                     </form>
                 </div>
 
+                <!-- GESTIÓN DINÁMICA DE CONCEPTOS DE PUNTOS -->
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-tags"></i> Gestión de Conceptos y Puntos</div>
+                    <form id="concepto-form" onsubmit="agregarConcepto(event)" style="margin-bottom: 20px;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="new-concepto-nombre">Nombre del Concepto:</label>
+                                <input type="text" id="new-concepto-nombre" placeholder="Ej. Receta Surtida en Clínica" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-concepto-pts">Puntos que otorga:</label>
+                                <input type="number" step="0.01" min="0.01" id="new-concepto-pts" placeholder="Ej. 0.25" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Guardar Nuevo Concepto</button>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Valor (Pts)</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-conceptos-lista"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VALIDACIÓN DE SOLICITUDES -->
                 <div class="card">
                     <div class="card-title"><i class="fas fa-check-double"></i> Solicitudes Pendientes de Validación</div>
                     <div class="table-responsive">
@@ -381,18 +451,19 @@
                             <thead>
                                 <tr>
                                     <th>Médico</th>
+                                    <th>Fecha</th>
+                                    <th>Folio / Paciente</th>
                                     <th>Concepto</th>
-                                    <th>Folio/Evidencia</th>
                                     <th>Pts</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="admin-pendientes">
-                                </tbody>
+                            <tbody id="admin-pendientes"></tbody>
                         </table>
                     </div>
                 </div>
 
+                <!-- RESUMEN POR MÉDICO -->
                 <div class="card">
                     <div class="card-title"><i class="fas fa-users"></i> Estado General de Consultorios y Rentas</div>
                     <div class="table-responsive">
@@ -401,22 +472,73 @@
                                 <tr>
                                     <th>Médico Especialista</th>
                                     <th>Puntos Visibles (Aprobados)</th>
-                                    <th>Descuento de Renta Acumulado</th>
+                                    <th>Descuento Acumulado</th>
                                     <th>Acciones de Control</th>
                                 </tr>
                             </thead>
-                            <tbody id="admin-medicos-lista">
-                                </tbody>
+                            <tbody id="admin-medicos-lista"></tbody>
                         </table>
                     </div>
                 </div>
+
+                <!-- GENERADOR DE REPORTES Y EXPORTACIÓN CSV -->
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-file-invoice-dollar"></i> Generador de Reportes Mensuales y Totales</div>
+                    
+                    <div class="filter-bar">
+                        <div>
+                            <label for="filter-medico">Filtrar por Médico:</label>
+                            <select id="filter-medico" onchange="generarReporte()">
+                                <option value="todos">Todos los Médicos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-mes">Mes/Año:</label>
+                            <input type="month" id="filter-mes" onchange="generarReporte()">
+                        </div>
+                        <div>
+                            <label for="filter-estatus">Estatus:</label>
+                            <select id="filter-estatus" onchange="generarReporte()">
+                                <option value="todos">Todos los Estatus</option>
+                                <option value="aprobado">Solo Aprobados</option>
+                                <option value="pendiente">Solo Pendientes</option>
+                                <option value="canjeado">Solo Aplicados a Renta</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                        <button onclick="descargarCSV()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> Descargar Reporte (CSV/Excel)</button>
+                        <div id="reporte-resumen-totales" style="font-weight: bold; color: var(--primary);">
+                            Totales: 0 Pts | $0 MXN
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Médico</th>
+                                    <th>Folio</th>
+                                    <th>Paciente</th>
+                                    <th>Concepto</th>
+                                    <th>Pts</th>
+                                    <th>Monto MXN</th>
+                                    <th>Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reporte-tabla-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
 
     </div>
 
     <script>
-        // CONFIGURACIÓN DE TU PROPIA BASE DE DATOS REAL (CONECTADA)
         const firebaseConfig = {
             apiKey: "AIzaSyAnptvoX6MaSyopJdjEuLEPNrehoXTFBwQ",
             authDomain: "especialistas-que-suman.firebaseapp.com",
@@ -427,38 +549,67 @@
             appId: "1:496158829128:web:a23f8f1b9b5f9ff05b067d"
         };
         
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const CATALOGO = {
-            credencializacion: { nombre: "Credencialización", pts: 2 },
-            ingreso_hosp: { nombre: "Ingreso a hospitalización", pts: 2 },
-            dia_hosp: { nombre: "Día hospitalizado", pts: 1 },
-            cx_mayor: { nombre: "Ingreso a CX mayor", pts: 4 },
-            cx_menor: { nombre: "Ingreso a CX menor", pts: 3 },
-            cx_pequena: { nombre: "Ingreso a CX pequeña", pts: 2 },
-            referencia: { nombre: "Referencia a CX u hospitalización", pts: 2 }
-        };
         const VALOR_PUNTO = 50;
         const PASS_CORRECTO = "SantaFe2026";
 
+        // Catálogo por defecto para inicialización si Firebase está vacío
+        const CATALOGO_INICIAL = {
+            credencializacion: { nombre: "Credencialización", pts: 2, activo: true },
+            ingreso_hosp: { nombre: "Ingreso a hospitalización", pts: 2, activo: true },
+            dia_hosp: { nombre: "Día hospitalizado", pts: 1, activo: true },
+            cx_mayor: { nombre: "Ingreso a CX mayor", pts: 4, activo: true },
+            cx_menor: { nombre: "Ingreso a CX menor", pts: 3, activo: true },
+            cx_pequena: { nombre: "Ingreso a CX pequeña", pts: 2, activo: true },
+            referencia: { nombre: "Referencia a CX u hospitalización", pts: 2, activo: true },
+            receta_surtida: { nombre: "Receta surtida en clínica", pts: 0.25, activo: true }
+        };
+
         let medicos = [];
         let registros = [];
+        let conceptos = {};
+        let registrosFiltrados = [];
 
-        // ESCUCHADORES EN TIEMPO REAL (NUBE)
+        document.getElementById('fecha-input').valueAsDate = new Date();
+
+        // Carga y sincronización de Conceptos desde Firebase
+        db.ref('conceptos').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                // Si la rama no existe, se inicializa con los conceptos base
+                db.ref('conceptos').set(CATALOGO_INICIAL);
+                conceptos = CATALOGO_INICIAL;
+            } else {
+                conceptos = data;
+            }
+            actualizarSelectConceptos();
+            if (document.getElementById('admin-panel').style.display === 'block') {
+                cargarTablaConceptos();
+            }
+        });
+
+        // Carga de Médicos
         db.ref('medicos').on('value', (snapshot) => {
             const data = snapshot.val();
             medicos = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
             actualizarSelectMedicos();
-            if (document.getElementById('admin-panel').style.display === 'block') cargarPanelAdmin();
+            if (document.getElementById('admin-panel').style.display === 'block') {
+                cargarPanelAdmin();
+                generarReporte();
+            }
             loadMedicoDashboard();
         });
 
+        // Carga de Registros
         db.ref('registros').on('value', (snapshot) => {
             const data = snapshot.val();
             registros = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-            if (document.getElementById('admin-panel').style.display === 'block') cargarPanelAdmin();
+            if (document.getElementById('admin-panel').style.display === 'block') {
+                cargarPanelAdmin();
+                generarReporte();
+            }
             loadMedicoDashboard();
         });
 
@@ -473,7 +624,11 @@
                 actualizarSelectMedicos();
                 loadMedicoDashboard();
             } else {
-                if (document.getElementById('admin-panel').style.display === 'block') cargarPanelAdmin();
+                if (document.getElementById('admin-panel').style.display === 'block') {
+                    cargarPanelAdmin();
+                    cargarTablaConceptos();
+                    generarReporte();
+                }
             }
         }
 
@@ -483,11 +638,93 @@
                 document.getElementById('admin-auth').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
                 cargarPanelAdmin();
+                cargarTablaConceptos();
+                generarReporte();
             } else {
                 alert('Contraseña incorrecta corporativa.');
             }
         }
 
+        // --- GESTIÓN DE CONCEPTOS DÁMICOS ---
+        function agregarConcepto(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('new-concepto-nombre').value.trim();
+            const pts = parseFloat(document.getElementById('new-concepto-pts').value);
+
+            if (nombre && !isNaN(pts)) {
+                const key = 'concept_' + Date.now();
+                db.ref('conceptos/' + key).set({
+                    nombre: nombre,
+                    pts: pts,
+                    activo: true
+                });
+
+                document.getElementById('new-concepto-nombre').value = '';
+                document.getElementById('new-concepto-pts').value = '';
+                alert('Nuevo concepto guardado en el sistema.');
+            }
+        }
+
+        function cambiarEstadoConcepto(key, estadoActual) {
+            db.ref('conceptos/' + key).update({
+                activo: !estadoActual
+            });
+        }
+
+        function cargarTablaConceptos() {
+            const tbody = document.getElementById('admin-conceptos-lista');
+            tbody.innerHTML = '';
+
+            Object.keys(conceptos).forEach(key => {
+                const c = conceptos[key];
+                const tr = document.createElement('tr');
+                const estaActivo = c.activo !== false;
+
+                tr.innerHTML = `
+                    <td><b>${c.nombre}</b></td>
+                    <td>${c.pts} pts</td>
+                    <td>
+                        <span class="badge ${estaActivo ? 'badge-approved' : 'badge-cashed'}">
+                            ${estaActivo ? 'Activo' : 'Desactivado'}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="cambiarEstadoConcepto('${key}', ${estaActivo})" class="btn btn-sm ${estaActivo ? 'btn-danger-sm' : 'btn-success'}">
+                            ${estaActivo ? '<i class="fas fa-eye-slash"></i> Desactivar' : '<i class="fas fa-check"></i> Activar'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function actualizarSelectConceptos() {
+            const select = document.getElementById('actividad-select');
+            const valSel = select.value;
+            select.innerHTML = '<option value="">-- Seleccionar Concepto --</option>';
+
+            Object.keys(conceptos).forEach(key => {
+                const c = conceptos[key];
+                // Mostrar solo los conceptos activos para nuevos registros
+                if (c.activo !== false) {
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.textContent = `${c.nombre} (${c.pts} pts)`;
+                    select.appendChild(opt);
+                }
+            });
+
+            select.value = valSel;
+        }
+
+        function obtenerNombreConcepto(key, conceptoGuardado) {
+            if (conceptos[key]) {
+                return conceptos[key].nombre;
+            }
+            return conceptoGuardado || key;
+        }
+
+        // --- GESTIÓN DE MÉDICOS ---
         function agregarMedico(e) {
             e.preventDefault();
             const nameInput = document.getElementById('new-medico-name');
@@ -516,15 +753,16 @@
             const pendientes = registros.filter(r => r.estatus === 'pendiente');
 
             if (pendientes.length === 0) {
-                tbodyPendientes.innerHTML = `<tr><td colspan="5" class="empty-state">No hay solicitudes pendientes de validación</td></tr>`;
+                tbodyPendientes.innerHTML = `<tr><td colspan="6" class="empty-state">No hay solicitudes pendientes de validación</td></tr>`;
             } else {
                 pendientes.forEach(r => {
                     const med = medicos.find(m => m.id === r.medicoId);
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><b>${med ? med.nombre : 'Desconocido'}</b></td>
-                        <td>${CATALOGO[r.concepto].nombre}</td>
-                        <td><code>${r.evidencia}</code></td>
+                        <td>${r.fecha || 'N/A'}</td>
+                        <td>Folio: <code>${r.folio || r.evidencia}</code><br><small>Pac: ${r.paciente || 'N/A'}</small></td>
+                        <td>${obtenerNombreConcepto(r.concepto, r.conceptoNombre)}</td>
                         <td><span style="color:var(--secondary); font-weight:bold;">+${r.puntos}</span></td>
                         <td class="action-btns">
                             <button onclick="resolverPuntos('${r.id}', 'aprobado')" class="btn btn-success btn-sm"><i class="fas fa-check"></i></button>
@@ -544,13 +782,13 @@
                 medicos.forEach(m => {
                     const ptsAprobados = registros
                         .filter(r => r.medicoId === m.id && r.estatus === 'aprobado')
-                        .reduce((sum, r) => sum + r.puntos, 0);
+                        .reduce((sum, r) => sum + parseFloat(r.puntos || 0), 0);
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${m.nombre}</td>
                         <td style="font-weight: bold; color: var(--primary);">${ptsAprobados} pts</td>
-                        <td style="font-weight: bold; color: var(--success);">$${ptsAprobados * VALOR_PUNTO} MXN</td>
+                        <td style="font-weight: bold; color: var(--success);">$${(ptsAprobados * VALOR_PUNTO).toFixed(2)} MXN</td>
                         <td class="action-btns">
                             <button onclick="canjearRenta('${m.id}', ${ptsAprobados})" class="btn btn-sm" style="background-color: var(--dark);" ${ptsAprobados === 0 ? 'disabled style="opacity:0.5;"' : ''}>
                                 <i class="fas fa-receipt"></i> Aplicar Renta
@@ -574,27 +812,43 @@
         }
 
         function canjearRenta(medicoId, puntos) {
-            if (confirm(`¿Confirmas que deseas aplicar el descuento de $${puntos * VALOR_PUNTO} MXN y restablecer el contador?`)) {
+            const monto = (puntos * VALOR_PUNTO).toFixed(2);
+            if (confirm(`¿Confirmas que deseas aplicar el descuento de $${monto} MXN y restablecer el contador del médico?`)) {
                 registros.forEach(r => {
                     if (r.medicoId === medicoId && r.estatus === 'aprobado') {
                         db.ref('registros/' + r.id).update({ estatus: 'canjeado' });
                     }
                 });
-                alert('Puntos aplicados con éxito.');
+                alert('Descuento aplicado con éxito.');
             }
         }
 
         function actualizarSelectMedicos() {
             const select = document.getElementById('medico-select');
+            const selectFilter = document.getElementById('filter-medico');
+            
             const valSeleccionado = select.value;
+            const valFilterSeleccionado = selectFilter ? selectFilter.value : 'todos';
+
             select.innerHTML = '<option value="">-- Seleccionar Médico --</option>';
+            if(selectFilter) selectFilter.innerHTML = '<option value="todos">Todos los Médicos</option>';
+
             medicos.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m.id;
                 opt.textContent = m.nombre;
                 select.appendChild(opt);
+
+                if(selectFilter) {
+                    const optFilter = document.createElement('option');
+                    optFilter.value = m.id;
+                    optFilter.textContent = m.nombre;
+                    selectFilter.appendChild(optFilter);
+                }
             });
+
             select.value = valSeleccionado;
+            if(selectFilter) selectFilter.value = valFilterSeleccionado;
         }
 
         function loadMedicoDashboard() {
@@ -610,19 +864,19 @@
 
             const ptsAprobados = registros
                 .filter(r => r.medicoId === medicoId && r.estatus === 'aprobado')
-                .reduce((sum, r) => sum + r.puntos, 0);
+                .reduce((sum, r) => sum + parseFloat(r.puntos || 0), 0);
 
             document.getElementById('dash-puntos').textContent = `${ptsAprobados} pts`;
-            document.getElementById('dash-dinero').textContent = `$${ptsAprobados * VALOR_PUNTO} MXN`;
+            document.getElementById('dash-dinero').textContent = `$${(ptsAprobados * VALOR_PUNTO).toFixed(2)} MXN`;
 
             const tbody = document.getElementById('medico-historial');
             tbody.innerHTML = '';
             const misRegs = registros.filter(r => r.medicoId === medicoId);
 
             if (misRegs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No has reportado actividades este mes</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No has reportado actividades registradas</td></tr>`;
             } else {
-                misRegs.sort((a,b) => b.id - a.id).forEach(r => {
+                misRegs.sort((a,b) => (b.fecha || '').localeCompare(a.fecha || '')).forEach(r => {
                     const tr = document.createElement('tr');
                     let badgeClass = 'badge-pending';
                     let estatusTexto = 'Pendiente';
@@ -631,10 +885,11 @@
                     if (r.estatus === 'canjeado') { badgeClass = 'badge-cashed'; estatusTexto = 'Aplicado en Renta'; }
 
                     tr.innerHTML = `
-                        <td>${r.fecha}</td>
-                        <td>${CATALOGO[r.concepto].nombre}</td>
+                        <td>${r.fecha || 'N/A'}</td>
+                        <td><code>${r.folio || r.evidencia}</code></td>
+                        <td>${r.paciente || 'N/A'}</td>
+                        <td>${obtenerNombreConcepto(r.concepto, r.conceptoNombre)}</td>
                         <td><b>+${r.puntos}</b></td>
-                        <td>$${r.puntos * VALOR_PUNTO} MXN</td>
                         <td><span class="badge ${badgeClass}">${estatusTexto}</span></td>
                     `;
                     tbody.appendChild(tr);
@@ -645,24 +900,121 @@
         function reportarActividad(e) {
             e.preventDefault();
             const medicoId = document.getElementById('medico-select').value;
-            const concepto = document.getElementById('actividad-select').value;
-            const evidencia = document.getElementById('evidencia-input').value.trim();
-            
-            const hoy = new Date();
-            const fechaTxt = `${hoy.getDate().toString().padStart(2,'0')}/${(hoy.getMonth()+1).toString().padStart(2,'0')}/${hoy.getFullYear()}`;
+            const conceptoKey = document.getElementById('actividad-select').value;
+            const fecha = document.getElementById('fecha-input').value;
+            const folio = document.getElementById('folio-input').value.trim();
+            const paciente = document.getElementById('paciente-input').value.trim();
+
+            if (!conceptoKey || !conceptos[conceptoKey]) {
+                alert('Selecciona un concepto válido.');
+                return;
+            }
+
+            const conceptoObj = conceptos[conceptoKey];
 
             const nuevoRegistro = {
                 medicoId: medicoId,
-                concepto: concepto,
-                evidencia: evidencia,
-                puntos: CATALOGO[concepto].pts,
-                fecha: fechaTxt,
+                concepto: conceptoKey,
+                conceptoNombre: conceptoObj.nombre, // Se respalda el nombre por si el concepto cambia
+                fecha: fecha,
+                folio: folio,
+                paciente: paciente,
+                puntos: parseFloat(conceptoObj.pts),
                 estatus: 'pendiente'
             };
 
             db.ref('registros').push(nuevoRegistro);
-            document.getElementById('evidencia-input').value = '';
-            alert('Actividad enviada a la nube.');
+
+            document.getElementById('folio-input').value = '';
+            document.getElementById('paciente-input').value = '';
+            document.getElementById('fecha-input').valueAsDate = new Date();
+
+            alert('Actividad enviada a la nube correctamente.');
+        }
+
+        // --- REPORTES Y EXPORTACIÓN ---
+        function generarReporte() {
+            const medicoId = document.getElementById('filter-medico').value;
+            const mesAnio = document.getElementById('filter-mes').value;
+            const estatus = document.getElementById('filter-estatus').value;
+
+            registrosFiltrados = registros.filter(r => {
+                let coincideMedico = (medicoId === 'todos') || (r.medicoId === medicoId);
+                let coincideEstatus = (estatus === 'todos') || (r.estatus === estatus);
+                let coincideMes = true;
+
+                if (mesAnio && r.fecha) {
+                    coincideMes = r.fecha.startsWith(mesAnio);
+                }
+
+                return coincideMedico && coincideEstatus && coincideMes;
+            });
+
+            const tbody = document.getElementById('reporte-tabla-body');
+            tbody.innerHTML = '';
+
+            let totalPuntos = 0;
+
+            if (registrosFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No existen registros para los filtros seleccionados</td></tr>`;
+            } else {
+                registrosFiltrados.sort((a,b) => (b.fecha || '').localeCompare(a.fecha || '')).forEach(r => {
+                    const med = medicos.find(m => m.id === r.medicoId);
+                    const tr = document.createElement('tr');
+                    
+                    let badgeClass = 'badge-pending';
+                    if (r.estatus === 'aprobado') badgeClass = 'badge-approved';
+                    if (r.estatus === 'canjeado') badgeClass = 'badge-cashed';
+
+                    const ptsVal = parseFloat(r.puntos || 0);
+                    totalPuntos += ptsVal;
+
+                    tr.innerHTML = `
+                        <td>${r.fecha || 'N/A'}</td>
+                        <td><b>${med ? med.nombre : 'Desconocido'}</b></td>
+                        <td><code>${r.folio || r.evidencia}</code></td>
+                        <td>${r.paciente || 'N/A'}</td>
+                        <td>${obtenerNombreConcepto(r.concepto, r.conceptoNombre)}</td>
+                        <td><b>+${ptsVal}</b></td>
+                        <td>$${(ptsVal * VALOR_PUNTO).toFixed(2)} MXN</td>
+                        <td><span class="badge ${badgeClass}">${r.estatus}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('reporte-resumen-totales').textContent = 
+                `Totales: ${totalPuntos.toFixed(2)} Pts | $${(totalPuntos * VALOR_PUNTO).toFixed(2)} MXN`;
+        }
+
+        function descargarCSV() {
+            if (registrosFiltrados.length === 0) {
+                alert('No hay datos en el reporte actual para descargar.');
+                return;
+            }
+
+            let csv = '\uFEFF';
+            csv += 'Fecha;Medico;Folio;Paciente;Concepto;Puntos;Monto_MXN;Estatus\n';
+
+            registrosFiltrados.forEach(r => {
+                const med = medicos.find(m => m.id === r.medicoId);
+                const nombreMedico = med ? med.nombre.replace(/;/g, '') : 'Desconocido';
+                const conceptoNombre = obtenerNombreConcepto(r.concepto, r.conceptoNombre).replace(/;/g, '');
+                const paciente = (r.paciente || 'N/A').replace(/;/g, '');
+                const folio = (r.folio || r.evidencia || 'N/A').replace(/;/g, '');
+                const ptsVal = parseFloat(r.puntos || 0);
+
+                csv += `"${r.fecha || ''}";"${nombreMedico}";"${folio}";"${paciente}";"${conceptoNombre}";${ptsVal};${(ptsVal * VALOR_PUNTO).toFixed(2)};"${r.estatus}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Reporte_Especialistas_SantaFe_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
